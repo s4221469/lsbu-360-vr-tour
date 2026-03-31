@@ -1,0 +1,7 @@
+# Large video file — exceeds GitHub 100MB limit
+assets/videos/robot-library.mp4
+
+# OS files
+.DS_Store
+Thumbs.db
+*.sw`
