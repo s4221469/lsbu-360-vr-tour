@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Library — Robot Tour | LSBU 360</title>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #0B1F3A; color: white; overflow: hidden; }
+    a-scene { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+
+    #loading-screen {
+      position: fixed; inset: 0; background: #0B1F3A;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 2000; gap: 20px;
+    }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 4px solid rgba(255,255,255,0.15);
+      border-top-color: #9C27B0;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading-screen p { color: rgba(255,255,255,0.6); font-size: 0.95rem; }
+
+    #tap-to-play {
+      display: none; position: fixed; inset: 0;
+      background: rgba(11,31,58,0.88); z-index: 1500;
+      flex-direction: column; align-items: center; justify-content: center;
+      gap: 16px; cursor: pointer;
+    }
+    #tap-to-play .play-icon { font-size: 5rem; }
+    #tap-to-play p { font-size: 1.1rem; color: rgba(255,255,255,0.7); }
+
+    #overlay { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
+    #overlay button, #overlay a, #overlay .panel { pointer-events: all; }
+
+    #top-bar {
+      position: absolute; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, transparent 100%);
+    }
+    .site-title { font-size: 1.1rem; font-weight: 700; border-bottom: 3px solid #9C27B0; padding-bottom: 2px; }
+
+    #bottom-bar {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+      gap: 10px; padding: 14px 20px 20px;
+      background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%);
+    }
+
+    .ctrl-btn {
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+      color: white; border-radius: 8px; padding: 8px 16px;
+      cursor: pointer; font-size: 0.88rem; font-weight: 600;
+      font-family: 'Inter', sans-serif; transition: background 0.2s; white-space: nowrap;
+    }
+    .ctrl-btn:hover { background: rgba(255,255,255,0.3); }
+    .ctrl-btn.accent { border-color: #9C27B0; background: rgba(156,39,176,0.2); }
+    .ctrl-btn.accent:hover { background: rgba(156,39,176,0.4); }
+
+    .panel {
+      position: fixed; background: rgba(11,31,58,0.92); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 20px;
+      transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; pointer-events: none;
+    }
+    .panel.panel-visible { opacity: 1; pointer-events: all; }
+
+    #info-panel {
+      bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); width: min(520px, 92vw);
+    }
+    #info-panel.panel-visible { transform: translateX(-50%) translateY(0); }
+
+    .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .panel-header h3 { font-size: 1rem; font-weight: 700; }
+    .close-btn { background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: background 0.2s; }
+    .close-btn:hover { background: rgba(255,255,255,0.15); }
+
+    #info-panel p { font-size: 0.9rem; line-height: 1.6; color: rgba(255,255,255,0.85); margin-bottom: 12px; }
+    .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .fact-item { background: rgba(255,255,255,0.07); border-radius: 8px; padding: 10px 12px; font-size: 0.82rem; color: rgba(255,255,255,0.75); }
+    .fact-item strong { display: block; color: white; margin-bottom: 2px; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+
+  <div id="loading-screen">
+    <div class="spinner"></div>
+    <p>Loading Library Robot Tour 360°…</p>
+  </div>
+
+  <div id="tap-to-play" onclick="document.getElementById('site-video').play(); this.style.display='none';">
+    <div class="play-icon">▶</div>
+    <p>Tap to start the 360° tour</p>
+  </div>
+
+  <a-scene vr-mode-ui="enabled: true" embedded renderer="colorManagement: true">
+    <a-assets>
+      <video id="site-video"
+             src="assets/videos/robot-library.mp4"
+             autoplay loop muted
+             crossorigin="anonymous"
+             playsinline webkit-playsinline>
+      </video>
+    </a-assets>
+
+    <a-videosphere src="#site-video" rotation="0 -90 0"></a-videosphere>
+
+    <a-camera>
+      <a-cursor color="white" fuse="true" fuse-timeout="1500"
+                animation__click="property: scale; startEvents: click; easing: easeInCubic; dur: 150; from: 0.1 0.1 0.1; to: 1 1 1"
+                animation__fusing="property: scale; startEvents: fusing; easing: easeInCubic; dur: 1500; from: 1 1 1; to: 0.1 0.1 0.1">
+      </a-cursor>
+    </a-camera>
+  </a-scene>
+
+  <div id="overlay">
+    <div id="top-bar">
+      <a class="ctrl-btn" href="index.html">&#8592; Back to Menu</a>
+      <span class="site-title">Library — Robot Tour</span>
+      <button class="ctrl-btn accent" onclick="enterVR()">🥽 Enter VR</button>
+    </div>
+
+    <div id="bottom-bar">
+      <button id="play-pause-btn" class="ctrl-btn" onclick="togglePlayPause()">⏸ Pause</button>
+      <button id="mute-btn" class="ctrl-btn" onclick="toggleMute()">🔇 Unmute</button>
+      <button class="ctrl-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+      <button class="ctrl-btn" onclick="togglePanel('info-panel')">ℹ Info</button>
+    </div>
+
+    <div id="info-panel" class="panel">
+      <div class="panel-header">
+        <h3>Library — Robot Tour</h3>
+        <button class="close-btn" onclick="togglePanel('info-panel')">✕</button>
+      </div>
+      <p>Experience the LSBU Library as filmed by our autonomous robot camera, capturing a unique moving perspective through the space.</p>
+      <p>The robot moves through the library's study zones, resource areas, and collaboration spaces, giving you a genuine feel for the environment you'll be studying in.</p>
+      <div class="facts">
+        <div class="fact-item"><strong>Location</strong>LSBU Main Campus, SE1</div>
+        <div class="fact-item"><strong>Filmed by</strong>Autonomous robot camera</div>
+        <div class="fact-item"><strong>Format</strong>360° moving footage</div>
+        <div class="fact-item"><strong>Access</strong>All LSBU students</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
